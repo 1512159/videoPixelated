@@ -62,8 +62,8 @@ def pixelate(image):
     pixelSize = 30
     # print(image.shape)
     image = Image.fromarray(image)
-    image = image.resize((image.size[0]/pixelSize, image.size[1]/pixelSize), Image.NEAREST)
-    pixelSize = int (pixelSize * 1.2)
+    image = image.resize((max(image.size[0]/pixelSize,1), max(image.size[1]/pixelSize,1)), Image.NEAREST)
+    pixelSize = int (pixelSize * 2)
     image = image.resize((image.size[0]*(pixelSize), image.size[1]*(pixelSize)), Image.NEAREST)
     # print(np.asarray(image).shape)
     return np.asarray(image)
