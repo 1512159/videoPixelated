@@ -41,22 +41,6 @@ class video:
        
     def show(self):
         print(self.videoPath, self.metaPath)
-        # print(self.metaFrame)
-        # print(self.imgFrame)
-
-
-
-    
-
-# def drawBBox(inpVideo):
-#     cap = cv2.VideoCapture(inpVideo)
-#     while(cap.isOpened()):
-#         ret, frame = cap.read()
-
-#         if frame is not None:
-#             cv2.imshow('frame',frame)
-#         if cv2.waitKey(1) & 0xFF == ord('q'):
-#             break
 
 def readTestTXT(inpFile):
     fi = open(inpFile,'r')
@@ -111,6 +95,7 @@ def loadInput(InputDir): #directory to meta and images folders
             for i in range(len(metaFiles)):
                 img = cv2.imread(imgFiles[i])
                 bboxs = processMetaFile(metaFiles[i])
+                print(imgFiles[i])
                 for bbox in bboxs:
                     face = img[bbox.my:bbox.my2,bbox.mx:bbox.mx2]
                     lx = face.shape[0]
