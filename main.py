@@ -4,6 +4,7 @@ import re
 import os
 from PIL import Image
 import sys
+import glob
 class bbox:
     def __init__(self,strInfo):
         info = strInfo.split(' ')
@@ -74,36 +75,56 @@ def loadInput(InputDir): #directory to meta and images folders
     out_path = InputDir + 'output'
     folders = os.listdir(meta_path)
     result = []
-    for folder in folders:
-        if (os.path.exists(img_path+'/'+folder)):
-            tmp_img = img_path+'/'+folder
-            imgFolder = [tmp_img+'/'+it for it in os.listdir(tmp_img)]
+    # for folder in folders:
+    #     if (os.path.exists(img_path+'/'+folder)):
+    #         tmp_img = img_path+'/'+folder
+    #         imgFolder = [tmp_img+'/'+it for it in os.listdir(tmp_img)]
             
-            tmp_meta = meta_path+'/'+folder
-            metaFolder = [tmp_meta+'/'+it for it in os.listdir(tmp_meta)]
+    #         tmp_meta = meta_path+'/'+folder
+    #         metaFolder = [tmp_meta+'/'+it for it in os.listdir(tmp_meta)]
+    
+    imgFiles  = glob.glob(img_path+'/*/*/*.JPG')
+    # metaFiles = glob.glob(meta_path+'/*/*/*.txt')
+    metaFolder = glob.glob(meta_path+'/*/*')
+    # for folder in imgFolder:
+    #     imgFiles = imgFiles + [folder+'/'+it for it in os.listdir(folder)   ]
+    # for folder in metaFolder:
+    #     metaFiles = metaFiles + [folder+'/'+it for it in os.listdir(folder)]
+    for folder in metaFolder:
+        if not os.path.exists(folder.replace('meta','output')):
+            os.makedirs(folder.replace('meta','output'))
+    for i in range(len(imgFiles)):
+        print(imgFiles[i])
+        img = cv2.imread(imgFiles[i])
+
+        imgFileName = os.path.basename(imgFiles[i])
+        
+        metaFile = glob.glob(meta_path+'/*/*/'+imgFileName.replace('JPG','txt'))
+        
+        if (len(metaFile)!=1):
+            print('----> Meta file not found!')
+            continue
+
+        bboxs = processMetaFile(metaFile[0])
+        
+        for bbox in bboxs:
+            face = img[bbox.my:bbox.my2,bbox.mx:bbox.mx2]
+
+            if (face.shape[0]==0 or face.shape[1]==0):
+                continue
             
+            #draw rectangle for debug
+            # cv2.rectangle(img, (bbox.mx,bbox.my), (bbox.mx2,bbox.my2), (0,255,0),2)
+            lx = face.shape[0]
+            ly = face.shape[1]
 
-            imgFiles  = []
-            metaFiles = []
-            for folder in imgFolder:
-                imgFiles = imgFiles + [folder+'/'+it for it in os.listdir(folder)]
-            for folder in metaFolder:
-                metaFiles = metaFiles + [folder+'/'+it for it in os.listdir(folder)]
-            for folder in metaFolder:
-                if not os.path.exists(folder.replace('meta','output')):
-                    os.makedirs(folder.replace('meta','output'))
-            for i in range(len(metaFiles)):
-                img = cv2.imread(imgFiles[i])
-                bboxs = processMetaFile(metaFiles[i])
-                print(imgFiles[i])
-                for bbox in bboxs:
-                    face = img[bbox.my:bbox.my2,bbox.mx:bbox.mx2]
-                    lx = face.shape[0]
-                    ly = face.shape[1]
-                    tmp = pixelate(img[bbox.my:bbox.my2,bbox.mx:bbox.mx2])[:lx,:ly]
-                    img[bbox.my:bbox.my2,bbox.mx:bbox.mx2] = tmp
 
-                cv2.imwrite(imgFiles[i].replace('images','output'),img)
+            tmp = pixelate(img[bbox.my:bbox.my2,bbox.mx:bbox.mx2])[:lx,:ly]
+
+            img[bbox.my:bbox.my2,bbox.mx:bbox.mx2] = tmp
+
+        cv2.imwrite(imgFiles[i].replace('images','output'),img)
+        print('--->DONE')
                 
             
     return result
