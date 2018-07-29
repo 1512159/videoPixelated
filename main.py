@@ -5,15 +5,22 @@ import os
 from PIL import Image
 import sys
 import glob
-MARGIN = 10
+MARGIN = 0
 
 class bbox:
     def __init__(self,strInfo):
         info = strInfo.split(' ')
-        self.mx = int(info[0])-MARGIN
-        self.my = int(info[1])-MARGIN
-        self.mw = int(info[2])+MARGIN*2
-        self.mh = int(info[3])+MARGIN*2
+        
+        w,h = int(info[2]),int(info[3])
+        MARGIN_w = max(int(w*0.1),5)
+        MARGIN_h = max(int(h*0.1),5)
+        # print(MARGIN_w,MARGIN_h)
+        # MARGIN_w,MARGIN_h = (0,0)
+        self.mx = int(info[0])-MARGIN_w
+        self.my = int(info[1])-MARGIN_h
+        self.mw = int(info[2])+MARGIN_w*2
+        self.mh = int(info[3])+MARGIN_h*2
+        
         self.mx2 = self.mx + self.mw
         self.my2 = self.my + self.mh
         self.area = (self.mx2-self.mx+1) * (self.my2-self.my+1)
@@ -63,12 +70,10 @@ def processMetaFile(metaFile):
     return res
 def pixelate(image):
     pixelSize = 15
-    # print(image.shape)
     image = Image.fromarray(image)
     image = image.resize((max(image.size[0]/pixelSize,1), max(image.size[1]/pixelSize,1)), Image.NEAREST)
     pixelSize = int (pixelSize * 2)
     image = image.resize((image.size[0]*(pixelSize), image.size[1]*(pixelSize)), Image.NEAREST)
-    # print(np.asarray(image).shape)
     return np.asarray(image)
 
 def getY2(bbox):
@@ -139,7 +144,7 @@ def loadInput(InputDir): #directory to meta and images folders
 
         bboxs = processMetaFile(metaFile[0])
         testbbx = list(bboxs)
-        bboxs = non_max_suppression_slow(bboxs,0.3)
+        bboxs = non_max_suppression_slow(bboxs,0.2)
         
         # for bbox in testbbx:
         #     cv2.rectangle(img, (bbox.mx,bbox.my), (bbox.mx2,bbox.my2), (0,0,255),2)
